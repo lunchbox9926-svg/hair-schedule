@@ -12,7 +12,7 @@
 <main>
   <header>
     <div class="icon">✦</div>
-    <div><h1>ヘアスケジュール</h1><p>アッシュブルー半年管理</p></div>
+    <div><h1>ヘアスケジュール</h1><p>ヘアカラー管理</p></div>
   </header>
 
   <section class="card hero">
@@ -28,23 +28,40 @@
   </section>
 
   <section class="card">
-    <h2>カラーバター記録</h2>
-    <div class="row">
-      <input id="recordDate" type="date">
-      <button id="recordBtn">今日のカラーを記録</button>
+    <h2>カラー記録</h2>
+    <label for="recordDate">日付</label>
+    <input id="recordDate" type="date">
+
+    <label for="colorName" class="mt">カラー名</label>
+    <input id="colorName" type="text" maxlength="40" placeholder="例：アッシュブルー、ピンク">
+
+    <label for="photo" class="mt">写真（任意）</label>
+    <input id="photo" type="file" accept="image/*">
+    <div id="previewWrap" class="previewWrap" hidden>
+      <img id="preview" alt="選択した写真">
+      <button id="clearPhoto" class="secondary" type="button">写真を外す</button>
     </div>
+
+    <button id="recordBtn" class="wide mt">この内容で記録</button>
     <div id="history"></div>
   </section>
 
   <section class="card">
     <h2>基本プラン</h2>
-    <p>0〜4か月：色落ちを見ながらアッシュブルーを補充。</p>
-    <p>4か月頃：ブリーチ予定ならカラーバターをいったん終了。</p>
-    <p>4〜6か月：追加カラー・ブリーチを避けて色落ち期間。</p>
-    <p>6か月頃：状態を確認して、必要なら伸びた根元のみブリーチを検討。</p>
+    <p>0〜4か月：色落ちを見ながら、必要に応じてカラーを補充。</p>
+    <p>4か月頃：ブリーチ予定がある場合は、残留色を考えて追加カラーを控える時期を検討。</p>
+    <p>4〜6か月：髪の状態と色落ちを確認しながら次回カラーを計画。</p>
+    <p>6か月頃：根元・毛先・残留色を確認して次の施術を検討。</p>
   </section>
 
-  <p class="note">記録はこの端末のブラウザ内に保存されます。</p>
+  <section class="card version">
+    <h2>バージョン情報</h2>
+    <p><strong>Ver. 1.1.0</strong></p>
+    <p>更新：2026/09/20 11:16（日本時間）</p>
+    <p>写真記録・カラー名の自由入力・更新情報を追加。</p>
+  </section>
+
+  <p class="note">記録と写真はこの端末のブラウザ内に保存されます。サイトデータを削除すると記録も消えます。</p>
 </main>
 <script src="app.js"></script>
 <script>

@@ -1,7 +1,8 @@
 {
   "name":"ヘアスケジュール",
-  "short_name":"ヘア予定",
+  "short_name":"ヘアカラー",
   "start_url":"./",
+  "scope":"./",
   "display":"standalone",
   "background_color":"#f4f5fb",
   "theme_color":"#6574d9",
