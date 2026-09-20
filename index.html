@@ -61,10 +61,13 @@
 
     <label for="afterPhoto" class="mt">生成したカラー後予想を登録</label>
     <input id="afterPhoto" type="file" accept="image/*">
+    <div id="afterPreviewWrap" class="previewWrap" hidden><div class="previewLabel">カラー後予想</div><img id="afterPreview" alt="カラー後予想プレビュー"><button id="clearAfter" class="secondary wide" type="button">選び直す</button></div>
 
     <label for="fadePhoto" class="mt">生成した色落ち予想を登録</label>
     <input id="fadePhoto" type="file" accept="image/*">
+    <div id="fadePreviewWrap" class="previewWrap" hidden><div class="previewLabel">色落ち予想</div><img id="fadePreview" alt="色落ち予想プレビュー"><button id="clearFade" class="secondary wide" type="button">選び直す</button></div>
 
+    <p class="swipeHelp mt">保存後は写真を左右にスワイプして比較できます。</p>
     <button id="recordBtn" class="wide mt">カラー記録を作成</button>
     <div id="storageInfo" class="storage"></div>
     <div id="history"></div>
@@ -80,9 +83,9 @@
 
   <section class="card version">
     <h2>バージョン情報</h2>
-    <p><strong>Ver. 1.3.0</strong></p>
-    <p>更新：2026/09/20 12:45（日本時間）</p>
-    <p>カラー前写真＋指示文をスマホの共有画面へ渡すAI連携を追加。生成した予想画像も記録できます。</p>
+    <p><strong>Ver. 1.4.0</strong></p>
+    <p>更新：2026/09/20（日本時間）</p>
+    <p>予想画像のプレビューと、カラー前→カラー後予想→色落ち予想→実際の経過写真のスワイプ比較を改善しました。</p>
   </section>
 
   <p class="note">記録と写真はこの端末のブラウザ内に保存されます。サイトデータを削除すると記録も消えます。</p>

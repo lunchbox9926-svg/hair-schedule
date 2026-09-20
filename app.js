@@ -43,13 +43,20 @@ async function renderHistory(){
  let rs=[...data.records].sort((a,b)=>b.date.localeCompare(a.date));
  history.innerHTML=rs.map(r=>`<article class="record" data-rec="${r.id}">
  <div class="recordHead"><div><strong>${r.date}</strong><div class="color">${esc(r.color||"カラー名なし")}</div></div><button class="deleteRec" data-id="${r.id}">記録を削除</button></div>
- <div class="carousel">${(r.photos||[]).map((p,i)=>`<div class="slide"><div class="photoLabel">${esc(p.type)}${p.type==="経過"?`｜${daysSince(r.date,p.date)}日後`:""}</div><div class="photoSlot" data-photo="${p.id}">読み込み中…</div><button class="deletePhoto" data-rec="${r.id}" data-photo="${p.id}">この写真を削除</button></div>`).join("")}</div>
- <div class="dots">${(r.photos||[]).map(()=>"<span>●</span>").join(" ")}</div>
+ <div class="carousel" data-carousel>${(r.photos||[]).map((p,i)=>`<div class="slide"><div class="photoLabel">${esc(p.type)}${p.type==="経過"?`｜${daysSince(r.date,p.date)}日後`:""}</div><div class="photoSlot" data-photo="${p.id}">読み込み中…</div><button class="deletePhoto" data-rec="${r.id}" data-photo="${p.id}">この写真を削除</button></div>`).join("")}</div>
+ <div class="dots">${(r.photos||[]).map((_,i)=>`<span class="dot${i===0?" active":""}">●</span>`).join("")}</div>
  <div class="addProgress"><label>現在の経過写真を追加</label><input class="progressDate" type="date" value="${iso(new Date())}"><input class="progressFile" type="file" accept="image/*"><button class="addProgressBtn" data-id="${r.id}">経過写真を追加</button></div>
  </article>`).join("");
  let total=0,count=0;
  for(let slot of document.querySelectorAll(".photoSlot")){let blob=await getPhoto(slot.dataset.photo);if(blob){total+=blob.size;count++;let u=URL.createObjectURL(blob);slot.innerHTML=`<img src="${u}" alt="ヘアカラー記録写真">`}else slot.textContent="写真を読み込めませんでした"}
  storageInfo.textContent=`写真 ${count}枚｜使用容量 ${(total/1048576).toFixed(1)} MB`;
+ document.querySelectorAll("[data-carousel]").forEach(car=>{
+  const dots=[...car.parentElement.querySelectorAll(".dot")];
+  car.addEventListener("scroll",()=>{
+   const i=Math.round(car.scrollLeft/Math.max(1,car.clientWidth));
+   dots.forEach((d,n)=>d.classList.toggle("active",n===i));
+  },{passive:true});
+ });
  document.querySelectorAll(".deletePhoto").forEach(b=>b.onclick=async()=>{
   if(!confirm("この写真をアプリの記録から削除しますか？\nスマホに保存されている元の写真は削除されません。"))return;
   let r=data.records.find(x=>x.id===b.dataset.rec);await delPhoto(b.dataset.photo);r.photos=r.photos.filter(p=>p.id!==b.dataset.photo);save();renderHistory();
@@ -65,17 +72,18 @@ async function renderHistory(){
 }
 start.onchange=()=>{data.start=start.value;save();render()};
 const beforeInput=$("#beforePhoto"), beforePreview=$("#beforePreview"), beforePreviewWrap=$("#beforePreviewWrap");
-beforeInput.onchange=()=>{
- const f=beforeInput.files[0];
- if(!f){beforePreviewWrap.hidden=true;return}
- beforePreview.src=URL.createObjectURL(f);
- beforePreviewWrap.hidden=false;
-};
-$("#clearBefore").onclick=()=>{
- beforeInput.value="";
- beforePreview.removeAttribute("src");
- beforePreviewWrap.hidden=true;
-};
+function setupPreview(inputId,imgId,wrapId,clearId){
+ const input=$("#"+inputId),img=$("#"+imgId),wrap=$("#"+wrapId);
+ input.onchange=()=>{
+  const f=input.files[0];
+  if(!f){img.removeAttribute("src");wrap.hidden=true;return}
+  img.src=URL.createObjectURL(f);wrap.hidden=false;
+ };
+ $("#"+clearId).onclick=()=>{input.value="";img.removeAttribute("src");wrap.hidden=true};
+}
+setupPreview("beforePhoto","beforePreview","beforePreviewWrap","clearBefore");
+setupPreview("afterPhoto","afterPreview","afterPreviewWrap","clearAfter");
+setupPreview("fadePhoto","fadePreview","fadePreviewWrap","clearFade");
 
 const fadeDays=$("#fadeDays"), aiPrompt=$("#aiPrompt");
 
@@ -137,12 +145,15 @@ $("#copyPrompt").onclick=async()=>{
 
 $("#recordBtn").onclick=async()=>{
  if(!recordDate.value){alert("日付を選んでください。");return}
+ if(!$("#beforePhoto").files[0]){alert("カラー前の写真を選んでください。");return}
  let r={id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),date:recordDate.value,color:colorName.value.trim()||"カラー名なし",photos:[]};
  try{
   await saveFile($("#beforePhoto").files[0],"カラー前",r.date,r);
   await saveFile($("#afterPhoto").files[0],"カラー後予想",r.date,r);
-  await saveFile($("#fadePhoto").files[0],"色落ち予想",r.date,r);
+  await saveFile($("#fadePhoto").files[0],`色落ち予想｜${fadeDays.value}日後`,r.date,r);
  }catch(e){alert("写真の保存に失敗しました。")}
- data.records.push(r);save();["beforePhoto","afterPhoto","fadePhoto"].forEach(id=>$("#"+id).value="");beforePreview.removeAttribute("src");beforePreviewWrap.hidden=true;colorName.value="";render();
+ data.records.push(r);save();["beforePhoto","afterPhoto","fadePhoto"].forEach(id=>$("#"+id).value="");
+ ["before","after","fade"].forEach(x=>{const img=$("#"+x+"Preview"),wrap=$("#"+x+"PreviewWrap");img.removeAttribute("src");wrap.hidden=true});
+ colorName.value="";render();
 };
 render();
