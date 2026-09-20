@@ -76,12 +76,73 @@ $("#clearBefore").onclick=()=>{
  beforePreview.removeAttribute("src");
  beforePreviewWrap.hidden=true;
 };
+
+const fadeDays=$("#fadeDays"), aiPrompt=$("#aiPrompt");
+
+function makePrompt(kind){
+  const color=(colorName.value||"指定したヘアカラー").trim();
+  if(kind==="after"){
+    return `添付した本人の写真を使って、ヘアカラー後の予想画像を作成してください。
+希望カラー：${color}
+顔・髪型・髪の長さ・服・背景・構図は変えず、髪色だけを自然に変更してください。
+暗い根元など、現在暗い部分は勝手にブリーチしたように明るくせず、現在の明るさを考慮してください。
+これは仕上がりの目安として見るための予想画像です。`;
+  }
+  return `添付した本人の写真を使って、ヘアカラーの色落ち予想画像を作成してください。
+希望カラー：${color}
+想定：カラー後から${fadeDays.value}日後
+顔・髪型・髪の長さ・服・背景・構図は変えず、髪色だけを自然に色落ちさせてください。
+現在の髪の明るさや黄みを考慮し、現実的な色落ちの目安として表現してください。`;
+}
+function refreshPrompt(){ aiPrompt.value=makePrompt("after"); }
+colorName.addEventListener("input",refreshPrompt);
+fadeDays.addEventListener("change",refreshPrompt);
+refreshPrompt();
+
+async function shareToAI(kind){
+  const file=beforeInput.files[0];
+  if(!file){ alert("先に「カラー前の写真」を選んでください。"); return; }
+  const prompt=makePrompt(kind);
+  aiPrompt.value=prompt;
+
+  try{
+    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({
+        title:"ヘアカラー予想",
+        text:prompt,
+        files:[file]
+      });
+      return;
+    }
+    if(navigator.share){
+      await navigator.clipboard.writeText(prompt);
+      await navigator.share({title:"ヘアカラー予想",text:prompt});
+      alert("写真を直接共有できなかったため、指示文をコピーしました。AIアプリで写真を添付してください。");
+      return;
+    }
+    await navigator.clipboard.writeText(prompt);
+    alert("指示文をコピーしました。ChatGPTを開いてカラー前の写真と一緒に貼り付けてください。");
+  }catch(e){
+    if(e && e.name==="AbortError") return;
+    try{ await navigator.clipboard.writeText(prompt); }catch(_){}
+    alert("共有できませんでした。指示文はコピーしました。AIアプリを開いて写真を添付してください。");
+  }
+}
+$("#shareAfter").onclick=()=>shareToAI("after");
+$("#shareFade").onclick=()=>shareToAI("fade");
+$("#copyPrompt").onclick=async()=>{
+  await navigator.clipboard.writeText(aiPrompt.value);
+  alert("指示文をコピーしました。");
+};
+
 $("#recordBtn").onclick=async()=>{
  if(!recordDate.value){alert("日付を選んでください。");return}
  let r={id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),date:recordDate.value,color:colorName.value.trim()||"カラー名なし",photos:[]};
  try{
   await saveFile($("#beforePhoto").files[0],"カラー前",r.date,r);
+  await saveFile($("#afterPhoto").files[0],"カラー後予想",r.date,r);
+  await saveFile($("#fadePhoto").files[0],"色落ち予想",r.date,r);
  }catch(e){alert("写真の保存に失敗しました。")}
- data.records.push(r);save();$("#beforePhoto").value="";beforePreview.removeAttribute("src");beforePreviewWrap.hidden=true;colorName.value="";render();
+ data.records.push(r);save();["beforePhoto","afterPhoto","fadePhoto"].forEach(id=>$("#"+id).value="");beforePreview.removeAttribute("src");beforePreviewWrap.hidden=true;colorName.value="";render();
 };
 render();
