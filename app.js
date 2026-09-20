@@ -64,14 +64,24 @@ async function renderHistory(){
  });
 }
 start.onchange=()=>{data.start=start.value;save();render()};
+const beforeInput=$("#beforePhoto"), beforePreview=$("#beforePreview"), beforePreviewWrap=$("#beforePreviewWrap");
+beforeInput.onchange=()=>{
+ const f=beforeInput.files[0];
+ if(!f){beforePreviewWrap.hidden=true;return}
+ beforePreview.src=URL.createObjectURL(f);
+ beforePreviewWrap.hidden=false;
+};
+$("#clearBefore").onclick=()=>{
+ beforeInput.value="";
+ beforePreview.removeAttribute("src");
+ beforePreviewWrap.hidden=true;
+};
 $("#recordBtn").onclick=async()=>{
  if(!recordDate.value){alert("日付を選んでください。");return}
  let r={id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),date:recordDate.value,color:colorName.value.trim()||"カラー名なし",photos:[]};
  try{
   await saveFile($("#beforePhoto").files[0],"カラー前",r.date,r);
-  await saveFile($("#afterPhoto").files[0],"カラー後予想",r.date,r);
-  await saveFile($("#fadePhoto").files[0],"色落ち予想",r.date,r);
  }catch(e){alert("写真の保存に失敗しました。")}
- data.records.push(r);save();["beforePhoto","afterPhoto","fadePhoto"].forEach(id=>$("#"+id).value="");colorName.value="";render();
+ data.records.push(r);save();$("#beforePhoto").value="";beforePreview.removeAttribute("src");beforePreviewWrap.hidden=true;colorName.value="";render();
 };
 render();
